@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">ProjectUdrive</string>
+    <string name="google_maps_key">AIzaSyADffwxuDlAabuxxDgZMiP7WqSCPeyPcyQ</string>
+    <string name="action_no_network">No active connection found.</string>
+    <string name="location_permission_title">Location Permission Needed</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+    <string name="location_permission_popup_message">This app needs the Location permission, please accept to use location functionality</string>
+    <string name="something_went_wrong">Something went wrong.Please try again.</string>
+</resources>
