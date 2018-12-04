@@ -8,10 +8,6 @@ import com.geo.projectudrive.contracts.activities.LocationPollingActivityContrac
 import com.geo.projectudrive.managers.GeoLocationManager;
 import com.geo.projectudrive.model.response.LocationResponseModel;
 
-/**
- * Created by george
- * on 02/12/18.
- */
 public class LocationPollingActivityPresenter implements LocationPollingActivityContract.Presenter {
 
     private LocationPollingActivityContract.View mView;

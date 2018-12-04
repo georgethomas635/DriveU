@@ -1,9 +1,5 @@
 package com.geo.projectudrive.app;
 
-/**
- * Created by george
- * on 03/12/18.
- */
 public class DriveUConstants {
 
     //API Constants

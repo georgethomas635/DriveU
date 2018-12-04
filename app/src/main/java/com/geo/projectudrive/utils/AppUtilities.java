@@ -39,19 +39,24 @@ public class AppUtilities {
         Location bestLocation = null;
         if (isPermissionGranded) {
             for (String provider : providers) {
-                @SuppressLint("MissingPermission") Location l = locationManager.getLastKnownLocation(provider);
-                if (l == null) {
+                @SuppressLint("MissingPermission") Location knownLocation = locationManager.getLastKnownLocation(provider);
+                if (knownLocation == null) {
                     continue;
                 }
-                if (bestLocation == null || l.getAccuracy() < bestLocation.getAccuracy()) {
-                    // Found best last known location: %s", l);
-                    bestLocation = l;
+                if (bestLocation == null || knownLocation.getAccuracy() < bestLocation.getAccuracy()) {
+                    bestLocation = knownLocation;
                 }
             }
         }
         return bestLocation;
     }
 
+    /**
+     * Check ACCESS_COARSE_LOCATION permission
+     *
+     * @param context:context
+     * @return permission status
+     */
     public static boolean checkPermission(Context context) {
         return ActivityCompat.checkSelfPermission(context,
                 Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||

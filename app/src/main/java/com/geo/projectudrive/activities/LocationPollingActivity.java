@@ -1,6 +1,7 @@
 package com.geo.projectudrive.activities;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Service;
 import android.content.DialogInterface;
 import android.location.Location;
@@ -48,11 +49,11 @@ public class LocationPollingActivity extends AppCompatActivity implements
 
     @BindView(R.id.fab)
     FloatingActionButton fabPlay;
+
     LocationManager locationManager;
     LatLng currentLocation;
     private LocationPollingActivityPresenter presenter;
     private GoogleMap mGoogleMap;
-    private GoogleApiClient mGoogleApiClient;
     private boolean actionPlay;
 
     @Override
@@ -105,32 +106,36 @@ public class LocationPollingActivity extends AppCompatActivity implements
     @Override
     public void onMapReady(GoogleMap googleMap) {
 
-
         mGoogleMap = googleMap;
         mGoogleMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
-
         //Initialize Google Play Services
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (AppUtilities.checkPermission(this)) {
                 //Location Permission already granted
-                buildGoogleApiClient();
-                mGoogleMap.setMyLocationEnabled(true);
+                setupGoogleAPIClient();
                 Location loc = AppUtilities.getLastKnownLocation(
                         getApplicationContext(), AppUtilities.checkPermission(this));
-                currentLocation = new LatLng(loc.getLatitude(), loc.getLongitude());
-                setPosition(currentLocation);
+                if (loc != null) {
+                    currentLocation = new LatLng(loc.getLatitude(), loc.getLongitude());
+                    setPosition(currentLocation);
+                }
             } else {
                 //Request Location Permission
-                checkLocationPermission();
+                requestLocationPermission();
             }
         } else {
-            buildGoogleApiClient();
-            mGoogleMap.setMyLocationEnabled(true);
+            setupGoogleAPIClient();
         }
     }
 
+    @SuppressLint("MissingPermission")
+    private void setupGoogleAPIClient() {
+        buildGoogleApiClient();
+        mGoogleMap.setMyLocationEnabled(true);
+    }
+
     protected synchronized void buildGoogleApiClient() {
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
+        GoogleApiClient mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .addApi(LocationServices.API)
@@ -138,43 +143,45 @@ public class LocationPollingActivity extends AppCompatActivity implements
         mGoogleApiClient.connect();
     }
 
-    private void checkLocationPermission() {
-        if (AppUtilities.checkPermission(this)) {
-
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
-                    Manifest.permission.ACCESS_FINE_LOCATION)) {
-                new AlertDialog.Builder(this)
-                        .setTitle(getResources().getString(R.string.location_permission_title))
-                        .setMessage(getResources().getString(R.string.location_permission_popup_message))
-                        .setNegativeButton(getResources().getString(R.string.cancel), new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialogInterface, int i) {
-                                LatLng defaltPosition = new LatLng(DriveUConstants.DEFAULT_LAT, DriveUConstants.DEFAULT_LONG);
-                                setPosition(defaltPosition);
-                            }
-                        })
-                        .setPositiveButton(getResources().getString(R.string.ok), new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialogInterface, int i) {
-                                //Prompt the user once explanation has been shown
-                                ActivityCompat.requestPermissions(LocationPollingActivity.this,
-                                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                                        MY_PERMISSIONS_REQUEST_LOCATION);
-                            }
-                        })
-                        .create()
-                        .show();
+    private void requestLocationPermission() {
+        if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                Manifest.permission.ACCESS_FINE_LOCATION)) {
+            new AlertDialog.Builder(this)
+                    .setTitle(getResources().getString(R.string.location_permission_title))
+                    .setMessage(getResources().getString(R.string.location_permission_popup_message))
+                    .setNegativeButton(getResources().getString(R.string.cancel), new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            LatLng defaltPosition = new LatLng(DriveUConstants.DEFAULT_LAT, DriveUConstants.DEFAULT_LONG);
+                            setPosition(defaltPosition);
+                        }
+                    })
+                    .setPositiveButton(getResources().getString(R.string.ok), new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            ActivityCompat.requestPermissions(LocationPollingActivity.this,
+                                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                                    MY_PERMISSIONS_REQUEST_LOCATION);
+                        }
+                    })
+                    .create()
+                    .show();
 
 
-            } else {
-                // No explanation needed, we can request the permission.
-                ActivityCompat.requestPermissions(this,
-                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                        MY_PERMISSIONS_REQUEST_LOCATION);
-            }
+        } else {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    MY_PERMISSIONS_REQUEST_LOCATION);
         }
+
     }
 
+    /**
+     * Mark the location in Google map
+     *
+     * @param longitude         :location longitude
+     * @param latitude:location latitude
+     */
     @Override
     public void markLocation(double longitude, double latitude) {
         LatLng latLng = new LatLng(latitude, longitude);
@@ -189,6 +196,11 @@ public class LocationPollingActivity extends AppCompatActivity implements
         adjustCameraZoom(location);
     }
 
+    /**
+     * Camera view changed to the curresponding location.
+     *
+     * @param location: marked location details
+     */
     private void adjustCameraZoom(LatLng location) {
         LatLngBounds.Builder builder = new LatLngBounds.Builder();
         builder.include(location);
@@ -222,7 +234,6 @@ public class LocationPollingActivity extends AppCompatActivity implements
         mAnimation.setAnimationListener(new Animation.AnimationListener() {
             @Override
             public void onAnimationStart(Animation animation) {
-
             }
 
             @Override
@@ -237,12 +248,15 @@ public class LocationPollingActivity extends AppCompatActivity implements
 
             @Override
             public void onAnimationRepeat(Animation animation) {
-
             }
         });
         fabPlay.startAnimation(mAnimation);
     }
 
+    /**
+     * fetch new geo location from server
+     * @param actionPlay: location search status
+     */
     private void getGeoLocationAPI(boolean actionPlay) {
         presenter.setActionPlay(actionPlay);
         presenter.findCustomerLocation(AppUtilities.isConnectedToInternet(this));

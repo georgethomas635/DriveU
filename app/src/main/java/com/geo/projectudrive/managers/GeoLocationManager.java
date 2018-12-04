@@ -34,7 +34,6 @@ public class GeoLocationManager {
             protected void onSuccessResponse(Call<LocationResponseModel> call, LocationResponseModel response) {
                 listener.getGeoLocationRequestCompleted(response, null);
             }
-
             @Override
             protected void onFailureResponse(Call<LocationResponseModel> call, String errorCode) {
                 listener.getGeoLocationRequestCompleted(null, errorCode);
