@@ -3,7 +3,6 @@ package com.geo.projectudrive.activities;
 import android.Manifest;
 import android.app.Service;
 import android.content.DialogInterface;
-import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Build;
@@ -12,7 +11,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.view.animation.Animation;
@@ -40,7 +38,8 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
-public class LocationPollingActivity extends AppCompatActivity implements LocationPollingActivityContract.View, OnMapReadyCallback,
+public class LocationPollingActivity extends AppCompatActivity implements
+        LocationPollingActivityContract.View, OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     public static final int MY_PERMISSIONS_REQUEST_LOCATION = 99;
@@ -61,10 +60,15 @@ public class LocationPollingActivity extends AppCompatActivity implements Locati
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_location_polling);
         ButterKnife.bind(this);
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+        initMapView();
+        initPresenter();
+    }
+
+    private void initMapView() {
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
         locationManager = (LocationManager) getSystemService(Service.LOCATION_SERVICE);
-        initPresenter();
     }
 
     private void initPresenter() {
@@ -100,18 +104,19 @@ public class LocationPollingActivity extends AppCompatActivity implements Locati
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
+
+
         mGoogleMap = googleMap;
         mGoogleMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
 
         //Initialize Google Play Services
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (ContextCompat.checkSelfPermission(this,
-                    Manifest.permission.ACCESS_FINE_LOCATION)
-                    == PackageManager.PERMISSION_GRANTED) {
+            if (AppUtilities.checkPermission(this)) {
                 //Location Permission already granted
                 buildGoogleApiClient();
                 mGoogleMap.setMyLocationEnabled(true);
-                Location loc = AppUtilities.getLastKnownLocation(getApplicationContext(), checkPermission());
+                Location loc = AppUtilities.getLastKnownLocation(
+                        getApplicationContext(), AppUtilities.checkPermission(this));
                 currentLocation = new LatLng(loc.getLatitude(), loc.getLongitude());
                 setPosition(currentLocation);
             } else {
@@ -134,15 +139,10 @@ public class LocationPollingActivity extends AppCompatActivity implements Locati
     }
 
     private void checkLocationPermission() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
+        if (AppUtilities.checkPermission(this)) {
 
             if (ActivityCompat.shouldShowRequestPermissionRationale(this,
                     Manifest.permission.ACCESS_FINE_LOCATION)) {
-
-                // Show an explanation to the user *asynchronously* -- don't block
-                // this thread waiting for the user's response! After the user
-                // sees the explanation, try again to request the permission.
                 new AlertDialog.Builder(this)
                         .setTitle(getResources().getString(R.string.location_permission_title))
                         .setMessage(getResources().getString(R.string.location_permission_popup_message))
@@ -179,20 +179,20 @@ public class LocationPollingActivity extends AppCompatActivity implements Locati
     public void markLocation(double longitude, double latitude) {
         LatLng latLng = new LatLng(latitude, longitude);
         mGoogleMap.clear();
-        if (checkPermission()) {
+        if (AppUtilities.checkPermission(this)) {
             mGoogleMap.setMyLocationEnabled(true);
         }
         mGoogleMap.addMarker(new MarkerOptions()
                 .position(latLng)
                 .draggable(true));
         LatLng location = new LatLng(latitude, longitude);
-        adjestCameraZoom(location);
+        adjustCameraZoom(location);
     }
 
-    private void adjestCameraZoom(LatLng location) {
+    private void adjustCameraZoom(LatLng location) {
         LatLngBounds.Builder builder = new LatLngBounds.Builder();
         builder.include(location);
-        Location loc = AppUtilities.getLastKnownLocation(getApplicationContext(), checkPermission());
+        Location loc = AppUtilities.getLastKnownLocation(getApplicationContext(), AppUtilities.checkPermission(this));
         if (loc != null) {
             currentLocation = new LatLng(loc.getLatitude(), loc.getLongitude());
             builder.include(currentLocation);
@@ -207,11 +207,6 @@ public class LocationPollingActivity extends AppCompatActivity implements Locati
         moveCameraPoint(point);
     }
 
-    @Override
-    public boolean checkPermission() {
-        return ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
-                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED;
-    }
 
     @Override
     public void moveCameraPoint(CameraUpdate point) {

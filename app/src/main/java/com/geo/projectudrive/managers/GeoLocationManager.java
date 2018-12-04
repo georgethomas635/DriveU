@@ -3,7 +3,7 @@ package com.geo.projectudrive.managers;
 import android.content.Context;
 
 import com.geo.projectudrive.contracts.activities.LocationPollingActivityContract;
-import com.geo.projectudrive.model.responce.LocationResponceModel;
+import com.geo.projectudrive.model.response.LocationResponseModel;
 import com.geo.projectudrive.network.APICallBack;
 import com.geo.projectudrive.network.NetworkModule;
 import com.geo.projectudrive.network.service.GeoLocation;
@@ -28,15 +28,15 @@ public class GeoLocationManager {
     }
 
     public void getGeoLocation(final LocationPollingActivityContract.Presenter listener) {
-        Call<LocationResponceModel> call = geoLocationService.getGeoLocation();
-        call.enqueue(new APICallBack<LocationResponceModel>() {
+        Call<LocationResponseModel> call = geoLocationService.getGeoLocation();
+        call.enqueue(new APICallBack<LocationResponseModel>() {
             @Override
-            protected void onSuccessResponse(Call<LocationResponceModel> call, LocationResponceModel response) {
+            protected void onSuccessResponse(Call<LocationResponseModel> call, LocationResponseModel response) {
                 listener.getGeoLocationRequestCompleted(response, null);
             }
 
             @Override
-            protected void onFailureResponse(Call<LocationResponceModel> call, String errorCode) {
+            protected void onFailureResponse(Call<LocationResponseModel> call, String errorCode) {
                 listener.getGeoLocationRequestCompleted(null, errorCode);
             }
         });

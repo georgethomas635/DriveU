@@ -2,7 +2,7 @@ package com.geo.projectudrive.network;
 
 import android.support.annotation.NonNull;
 
-import com.geo.projectudrive.model.responce.BaseResponse;
+import com.geo.projectudrive.model.response.BaseResponse;
 
 import retrofit2.Call;
 import retrofit2.Callback;

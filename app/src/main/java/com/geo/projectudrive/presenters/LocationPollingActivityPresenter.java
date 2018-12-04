@@ -6,7 +6,7 @@ import com.geo.projectudrive.R;
 import com.geo.projectudrive.app.DriveUConstants;
 import com.geo.projectudrive.contracts.activities.LocationPollingActivityContract;
 import com.geo.projectudrive.managers.GeoLocationManager;
-import com.geo.projectudrive.model.responce.LocationResponceModel;
+import com.geo.projectudrive.model.response.LocationResponseModel;
 
 /**
  * Created by george
@@ -33,7 +33,7 @@ public class LocationPollingActivityPresenter implements LocationPollingActivity
     }
 
     @Override
-    public void getGeoLocationRequestCompleted(LocationResponceModel response, String errorMessage) {
+    public void getGeoLocationRequestCompleted(LocationResponseModel response, String errorMessage) {
         if (response != null) {
             mView.markLocation(response.getLongitude(), response.getLatitude());
         } else {
@@ -45,7 +45,6 @@ public class LocationPollingActivityPresenter implements LocationPollingActivity
     public void findCustomerLocation(final boolean isConnectedToInternet) {
         final Handler handler = new Handler();
         handler.postDelayed(new Runnable() {
-
             @Override
             public void run() {
                 if (actionPlay) {

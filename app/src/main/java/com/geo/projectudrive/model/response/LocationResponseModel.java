@@ -1,4 +1,4 @@
-package com.geo.projectudrive.model.responce;
+package com.geo.projectudrive.model.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * Created by george
  * on 02/12/18.
  */
-public class LocationResponceModel extends BaseResponse {
+public class LocationResponseModel extends BaseResponse {
 
     @JsonProperty("latitude")
     private double latitude;
